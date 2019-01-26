@@ -1,6 +1,5 @@
-import _ from 'lodash';
-import Router from 'next/router';
-import styled, { keyframes, css } from 'react-emotion';
+import Router, { withRouter } from 'next/router';
+import { css } from 'react-emotion';
 
 import * as React from 'react';
 import * as Utilities from '~/common/utilities';
@@ -58,133 +57,137 @@ const mutateRouteDataForRender = data => {
   });
 };
 
-export default class DocumentationPage extends React.Component {
-  state = {
-    isMenuActive: false,
-  };
-
-  componentDidMount() {
-    Router.onRouteChangeStart = () => {
-      if (this.refs.layout) {
-        window.__sidebarScroll = this.refs.layout.getSidebarScrollTop();
-      }
-      window.NProgress.start();
-    };
-
-    Router.onRouteChangeComplete = () => {
-      window.NProgress.done();
-    };
-
-    Router.onRouteChangeError = () => {
-      window.NProgress.done();
-    };
-
-    window.addEventListener('resize', this._handleResize);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this._handleResize);
-  }
-
-  _handleResize = () => {
-    // NOTE(jim): Handles switching between web and mobile layouts.
-    const scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
-
-    if (WindowUtils.getViewportSize().width >= Constants.breakpoints.mobileValue) {
-      window.scrollTo(0, 0);
-    }
-  };
-
-  _handleSetVersion = version => {
-    this._version = version;
-    let newPath = '/versions/' + version;
-
-    // TODO: Find what's stripping trailing slashes from these
-    if (version.startsWith('v')) {
-      newPath += '/'
-    }
-
-    Router.push(newPath + '/');
-  };
-
-  _handleShowMenu = () => {
-    this.setState({
-      isMenuActive: true,
-    });
-  };
-
-  _handleHideMenu = () => {
-    this.setState({
+export default withRouter(
+  class DocumentationPage extends React.Component {
+    state = {
       isMenuActive: false,
-    });
-  };
+    };
 
-  render() {
-    const sidebarScrollPosition = process.browser ? window.__sidebarScroll : 0;
-    const canonicalUrl = `https://docs.expo.io${Utilities.replaceVersionInUrl(
-      this.props.url.pathname,
-      'latest'
-    )}`;
+    componentDidMount() {
+      Router.onRouteChangeStart = () => {
+        if (this.refs.layout) {
+          window.__sidebarScroll = this.refs.layout.getSidebarScrollTop();
+        }
+        window.NProgress.start();
+      };
 
-    let version = (this.props.asPath || this.props.url.pathname).split(`/`)[2];
-    if (!version || VERSIONS.indexOf(version) === -1) {
-      version = VERSIONS[0];
+      Router.onRouteChangeComplete = () => {
+        window.NProgress.done();
+      };
+
+      Router.onRouteChangeError = () => {
+        window.NProgress.done();
+      };
+
+      window.addEventListener('resize', this._handleResize);
     }
-    this._version = version;
 
-    const routes = navigation[version];
+    componentWillUnmount() {
+      window.removeEventListener('resize', this._handleResize);
+    }
 
-    const headerElement = (
-      <DocumentationHeader
-        pathname={this.props.url.pathname}
-        version={this._version}
-        isMenuActive={this.state.isMenuActive}
-        isAlogiaSearchHidden={this.state.isMenuActive}
-        onSetVersion={this._handleSetVersion}
-        onShowMenu={this._handleShowMenu}
-        onHideMenu={this._handleHideMenu}
-      />
-    );
+    _handleResize = () => {
+      // NOTE(jim): Handles switching between web and mobile layouts.
+      const scrollTop = document.body.scrollTop || document.documentElement.scrollTop;
 
-    const sidebarElement = (
-      <DocumentationSidebar url={this.props.url} asPath={this.props.asPath} routes={routes} />
-    );
+      if (WindowUtils.getViewportSize().width >= Constants.breakpoints.mobileValue) {
+        window.scrollTo(0, 0);
+      }
+    };
 
-    console.log(this.props.title);
+    _handleSetVersion = version => {
+      this._version = version;
+      let newPath = '/versions/' + version;
 
-    return (
-      <DocumentationNestedScrollLayout
-        ref="layout"
-        header={headerElement}
-        sidebar={sidebarElement}
-        isMenuActive={this.state.isMenuActive}
-        sidebarScrollPosition={sidebarScrollPosition}>
-        <Head title={`${this.props.title} - Expo Documentation`}>
-          {version === 'unversioned' && <meta name="robots" content="noindex" />}
-          {version !== 'unversioned' && <link rel="canonical" href={canonicalUrl} />}
-        </Head>
+      // TODO: Find what's stripping trailing slashes from these
+      if (version.startsWith('v')) {
+        newPath += '/';
+      }
 
-        {!this.state.isMenuActive ? (
-          <div className={STYLES_DOCUMENT}>
-            <div className={STYLES_ALERT}>
-              <strong className={STYLES_ALERT_BOLD}>Hey friend!</strong> We are co-hosting a
-              conference with <strong className={STYLES_ALERT_BOLD}>Software Mansion</strong>,{' '}
-              <a
-                className={STYLES_ALERT_BOLD}
-                style={{ color: Constants.colors.lila }}
-                href="https://appjs.co/"
-                target="blank">
-                learn more
-              </a>.
+      Router.push(newPath + '/');
+    };
+
+    _handleShowMenu = () => {
+      this.setState({
+        isMenuActive: true,
+      });
+    };
+
+    _handleHideMenu = () => {
+      this.setState({
+        isMenuActive: false,
+      });
+    };
+
+    render() {
+      const sidebarScrollPosition = process.browser ? window.__sidebarScroll : 0;
+      const { router } = this.props;
+      const canonicalUrl = `https://docs.expo.io${Utilities.replaceVersionInUrl(
+        router.pathname,
+        'latest'
+      )}`;
+
+      let version = (router.asPath || router.pathname).split(`/`)[2];
+      if (!version || VERSIONS.indexOf(version) === -1) {
+        version = VERSIONS[0];
+      }
+      this._version = version;
+
+      const routes = navigation[version];
+
+      const headerElement = (
+        <DocumentationHeader
+          pathname={router.pathname}
+          version={this._version}
+          isMenuActive={this.state.isMenuActive}
+          isAlogiaSearchHidden={this.state.isMenuActive}
+          onSetVersion={this._handleSetVersion}
+          onShowMenu={this._handleShowMenu}
+          onHideMenu={this._handleHideMenu}
+        />
+      );
+
+      const sidebarElement = (
+        <DocumentationSidebar url={router.url} asPath={router.asPath} routes={routes} />
+      );
+
+      console.log(this.props.title);
+
+      return (
+        <DocumentationNestedScrollLayout
+          ref="layout"
+          header={headerElement}
+          sidebar={sidebarElement}
+          isMenuActive={this.state.isMenuActive}
+          sidebarScrollPosition={sidebarScrollPosition}>
+          <Head title={`${this.props.title} - Expo Documentation`}>
+            {version === 'unversioned' && <meta name="robots" content="noindex" />}
+            {version !== 'unversioned' && <link rel="canonical" href={canonicalUrl} />}
+          </Head>
+
+          {!this.state.isMenuActive ? (
+            <div className={STYLES_DOCUMENT}>
+              <div className={STYLES_ALERT}>
+                <strong className={STYLES_ALERT_BOLD}>Hey friend!</strong> We are co-hosting a
+                conference with <strong className={STYLES_ALERT_BOLD}>Software Mansion</strong>,{' '}
+                <a
+                  className={STYLES_ALERT_BOLD}
+                  style={{ color: Constants.colors.lila }}
+                  href="https://appjs.co/"
+                  target="blank">
+                  learn more
+                </a>
+                .
+              </div>
+              <H1>{this.props.title}</H1>
+              {this.props.children}
+              <DocumentationFooter />
             </div>
-            <H1>{this.props.title}</H1>
-            {this.props.children}
-            <DocumentationFooter />
-          </div>
-        ) : (
-          <DocumentationSidebar url={this.props.url} asPath={this.props.asPath} routes={routes} />
-        )}
-      </DocumentationNestedScrollLayout>
-    );
+          ) : (
+            <DocumentationSidebar url={router.url} asPath={router.asPath} routes={routes} />
+          )}
+        </DocumentationNestedScrollLayout>
+      );
+    }
   }
-}
+);

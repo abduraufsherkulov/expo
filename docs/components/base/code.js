@@ -101,9 +101,8 @@ export class Code extends React.Component {
   }
 
   render() {
-    let code = this.props.children;
-    let { lang } = this.props;
-    let html = code.toString();
+    let lang = this.props.className && this.props.className.slice(9).toLowerCase();
+    let html = this.props.children.toString();
     if (lang && !Prism.languages[lang]) {
       try {
         require('prismjs/components/prism-' + lang + '.js');

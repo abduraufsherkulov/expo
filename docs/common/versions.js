@@ -3,7 +3,7 @@ import Package from '~/package.json';
 const versionDirectories = preval`
   const { readdirSync } = require('fs');
 
-  const versionsContents = readdirSync('./versions', {withFileTypes: true});
+  const versionsContents = readdirSync('./pages/versions', {withFileTypes: true});
 
   module.exports = versionsContents.filter(f => f.isDirectory()).map(f => f.name);
 `;
