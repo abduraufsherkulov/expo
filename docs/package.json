@@ -9,8 +9,7 @@
     "export-server": "cd out && python -m SimpleHTTPServer 8000",
     "fix-markdown": "node ./transition/fix-markdown.js",
     "import-react-native-docs": "node ./scripts/import-react-native-docs.js",
-    "test-links": "wget --page-requisites --spider --random-wait --recursive",
-    "test-links:all": "scripts/test-links-all-versions.sh"
+    "test-links": "blc --recursive --exclude-external --filter-level 2"
   },
   "dependencies": {
     "@mdx-js/mdx": "^0.16.8",
@@ -49,6 +48,7 @@
     "@babel/core": "^7.2.0",
     "@babel/node": "^7.2.2",
     "babel-plugin-preval": "^3.0.1",
+    "broken-link-checker": "^0.7.8",
     "minimist": "^1.2.0",
     "shelljs": "^0.8.2"
   }
